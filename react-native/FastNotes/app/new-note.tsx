@@ -2,8 +2,10 @@ import type { Theme } from '@react-navigation/native';
 import { useTheme } from '@react-navigation/native';
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { addNote } from "../src/NotesStore";
+
 
 export default function NewNote() {
     const theme = useTheme() as Theme;
@@ -16,21 +18,13 @@ export default function NewNote() {
     function onSave() {addNote(title, content);router.back();}
 
     return(
-    <KeyboardAvoidingView
-    style={{ flex: 1, backgroundColor: theme.colors.background }}
-    behavior='height'>
-
-        <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={[styles.inner, { flexGrow: 1}]}
+    <View style={[{ flex: 1, backgroundColor: theme.colors.background }]}>
+        <KeyboardAwareScrollView
+        contentContainerStyle={ styles.inner }
         keyboardShouldPersistTaps='handled'
-        keyboardDismissMode='none'
-        >
-            <Text style={styles.text}>
-                New note
-            </Text>
+        bottomOffset={80}>
 
-
+            <Text style={styles.text}>New note</Text>
 
             <TextInput
                 style={styles.input}
@@ -56,9 +50,8 @@ export default function NewNote() {
             <Link href="/" style={styles.link}>
             Back
             </Link>
-            <View style={styles.keyboardSpacer}/>
-        </ScrollView>
-        </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+    </View>
     )
 
 }
@@ -87,9 +80,6 @@ function createStyles(theme: Theme) {
         },
         contentInput: {
             minHeight:200,
-        },
-        keyboardSpacer: {
-            height: 360,
         },
 
     });

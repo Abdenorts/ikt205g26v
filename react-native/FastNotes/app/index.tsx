@@ -22,9 +22,17 @@ export default function Index() {
       <FlatList
       data={notes}
       keyExtractor={(item) => item.id}
+      contentContainerStyle={notes.length === 0 ? styles.emptyContainer : undefined}
+      ListEmptyComponent={
+      <Text style={styles.emptyText}>
+        No notes yet. Click + button to create one!
+        </Text>
+        }
       renderItem={({ item }) => (
-        <Link href={`/note/${item.id}`} style={styles.button}>
-          {item.title}
+        <Link href={`/note/${item.id}`} asChild>
+          <Pressable style={styles.noteCard}>
+            <Text style={styles.noteTitle}>{item.title}</Text>
+          </Pressable>
         </Link>
       )}
       />  
@@ -39,6 +47,29 @@ export default function Index() {
 
 function createStyles(theme: Theme) {
   return StyleSheet.create({
+    emptyContainer: {
+      flexGrow: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 26,
+    },
+    emptyText: {
+      fontSize: 16,
+      color: theme.colors.text,
+      opacity: 0.7,
+      textAlign: 'center',
+    },
+    noteCard: {
+      width: "100%",
+      padding: 14,
+      borderRadius: 12,
+      backgroundColor: "white",
+      marginBottom: 12,
+    },
+    noteTitle: {
+      fontSize: 18,
+      color: "#111",
+    },
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,

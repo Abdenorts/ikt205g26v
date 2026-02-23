@@ -44,3 +44,6 @@ app-example
 
 #github
 .github/
+
+# supabase keys
+.env

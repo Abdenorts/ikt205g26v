@@ -3,8 +3,7 @@ import { useTheme } from '@react-navigation/native';
 import { Link, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { getNotes, Note } from "../src/NotesStore";
-
+import { getNotes, Note } from "../../src/NotesStore";
 
 
 export default function Index() {

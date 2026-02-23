@@ -1,27 +1,55 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+// app/_layout.tsx
+
+import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
-import { useColorScheme as useRNColorScheme } from 'react-native';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { useEffect, useState } from "react";
+import { useColorScheme as useRNColorScheme } from "react-native";
+import { KeyboardProvider } from "react-native-keyboard-controller";
+import { supabase } from "../lib/supabase";
 
 export function useColorScheme() {
   return useRNColorScheme();
 }
 
-export { ErrorBoundary } from 'expo-router';
+export { ErrorBoundary } from "expo-router";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data }) => {
+      setIsLoggedIn(!!data.session);
+    });
+
+    // Listen for changes (login/logout)
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => {
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Still checking auth state
+  if (isLoggedIn == null) return null;
+
   return (
     <KeyboardProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack>
-          <Stack.Screen name="index" options={{ headerTitle: "Your Notes" }}/>
-          <Stack.Screen name="new-note" options={{ headerTitle: "Create new note" }}/>
-          <Stack.Screen name="note/[id]" options={{ headerTitle: "Note Detail" }}/>
+          <Stack.Protected guard={isLoggedIn === true}>
+            <Stack.Screen name="(app)" options={{ headerShown: false }} />
+          </Stack.Protected>
+
+          <Stack.Protected guard={isLoggedIn === false}>
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+          </Stack.Protected>
+
         </Stack>
       </ThemeProvider>
-
     </KeyboardProvider>
   );
 }

@@ -2,7 +2,7 @@ import type { Theme } from '@react-navigation/native';
 import { useTheme } from '@react-navigation/native';
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { getNoteById } from "../../src/NotesStore";
+import { getNoteById } from "../../../src/NotesStore";
 
 export default function NoteDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();

@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { addNote } from "../src/NotesStore";
+import { addNote } from "../../src/NotesStore";
 
 
 export default function NewNote() {

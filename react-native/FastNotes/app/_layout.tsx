@@ -1,5 +1,3 @@
-// app/_layout.tsx
-
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
@@ -18,12 +16,10 @@ export default function RootLayout() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data }) => {
       setIsLoggedIn(!!data.session);
     });
 
-    // Listen for changes (login/logout)
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(!!session);
     });
@@ -33,7 +29,6 @@ export default function RootLayout() {
     };
   }, []);
 
-  // Still checking auth state
   if (isLoggedIn == null) return null;
 
   return (
@@ -46,6 +41,7 @@ export default function RootLayout() {
 
           <Stack.Protected guard={isLoggedIn === false}>
             <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="signup" options={{ headerShown: false }} /> 
           </Stack.Protected>
 
         </Stack>

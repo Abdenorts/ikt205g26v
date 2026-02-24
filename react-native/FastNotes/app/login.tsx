@@ -1,3 +1,4 @@
+import { router } from 'expo-router'
 import React, { useState } from 'react'
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { supabase } from '../lib/supabase'
@@ -18,22 +19,6 @@ export default function Auth() {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
 
         if (error) Alert.alert('Error signing in', error.message)
-        setLoading(false)
-    }
-
-        async function signUpWithEmail() {
-            if (!email.trim() || !password.trim()) { 
-                Alert.alert("Error", "Email and password cannot be empty."); 
-                return; 
-} 
-        setLoading(true)
-        const {
-            data: { session },
-            error,
-        } = await supabase.auth.signUp({ email, password })
-
-        if (error) Alert.alert('Error signing up', error.message)
-        else Alert.alert('Success', 'Check your email to verify your account.') 
         setLoading(false)
     }
 
@@ -72,7 +57,7 @@ export default function Auth() {
       <View style={styles.verticallySpaced}>
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={() => signUpWithEmail()}
+          onPress={() => router.push('/signup')}
           disabled={loading}
         >
           <Text style={styles.buttonText}>Sign up</Text>

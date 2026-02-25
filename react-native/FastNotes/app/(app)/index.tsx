@@ -18,6 +18,13 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
+
+      <Link href="/work_notes" asChild>
+        <Pressable style={{marginBottom: 12}}>
+          <Text style={styles.button}>Work notes</Text>
+        </Pressable>
+      </Link>
+
       <FlatList
       data={notes}
       keyExtractor={(item) => item.id}
@@ -27,7 +34,8 @@ export default function Index() {
         No notes yet. Click + button to create one!
         </Text>
         }
-      renderItem={({ item }) => (
+
+        renderItem={({ item }) => (
         <Link href={`/note/${item.id}`} asChild>
           <Pressable style={styles.noteCard}>
             <Text style={styles.noteTitle}>{item.title}</Text>

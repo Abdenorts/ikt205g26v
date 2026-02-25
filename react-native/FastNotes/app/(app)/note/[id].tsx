@@ -1,47 +1,179 @@
+import { supabase } from '@/lib/supabase';
 import type { Theme } from '@react-navigation/native';
 import { useTheme } from '@react-navigation/native';
-import { Link, useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { getNoteById } from "../../../src/NotesStore";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+
+type WorkNote = {
+    id: number;
+    title: string;
+    content: string;
+};
 
 export default function NoteDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const note = id ? getNoteById(id) : undefined;
+  const noteId = Number(id);
   const theme = useTheme() as Theme;
   const styles = createStyles(theme);
   const router = useRouter();
 
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  if (!note) {
+useEffect(() => {
+    (async () => {
+      if(!id || Number.isNaN(noteId)) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('FastNotes')
+        .select('id, title, content')
+        .eq('id', noteId)
+        .single();
+
+      if (error || !data) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+      }
+
+      const n = data as WorkNote;
+      setTitle(n.title);
+      setContent(n.content);
+      setLoading(false);
+    })();
+  }, [id, noteId]);
+
+  async function onSave() {
+    const t = title.trim();
+    const c = content.trim();
+
+    if(!t || !c) {
+        alert("Title and content cannot be empty");
+        return;
+    }
+
+    const { error } = await supabase
+        .from('FastNotes')
+        .update({ title: t, content: c, updated_at: new Date() })
+        .eq('id', noteId);
+
+      if(error){
+        Alert.alert("Error", "Failed to update note");
+        return;
+  } 
+    Alert.alert("Success", "Note updated");
+    router.back();
+  }
+
+  async function onDelete() {
+    Alert.alert(
+      "Delete Note?", 
+      "Are you sure you want to delete this note?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", 
+          style: "destructive",
+           onPress: async () => {
+            const { error } = await supabase
+              .from('FastNotes')
+              .delete()
+              .eq('id', noteId);
+
+            if(error){
+              Alert.alert("Error", "Failed to delete note");
+              return;
+            }
+
+            Alert.alert("Success", "Note deleted");
+            router.back();
+          } 
+        },
+      ]
+    );
+  }
+      
+
+  if (loading) return null;
+
+  if (notFound) {
     return (
       <View style={styles.container}>
         <Text style={styles.notFound}>Note not found</Text>
-        <Link href="/" style={styles.link}>S
-          Back
-        </Link>
+        <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.backFab, pressed && styles.backFabPressed]}>
+          <Text style={styles.backFabText}>Back</Text>
+        </Pressable>
       </View>
     );
   }
 
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{note.title}</Text>
+      <TextInput
+       style={styles.title}
+       value={title}
+       onChangeText={setTitle}
+       placeholder="Enter title"
+      />
 
-      <View style={styles.card}>
-        <Text style={styles.content}>{note.content}</Text>
-      </View>
-          <Pressable onPress={() => router.back()}
-            style={({ pressed }) => [styles.backFab, pressed && styles.backFabPressed]}>
-            <Text style={styles.backFabText}>Back</Text>
-          </Pressable>
+      <TextInput
+       style={[styles.input, styles.contentInput]}
+       value={content}
+       onChangeText={setContent}
+       placeholder="Enter content"
+       multiline
+       textAlignVertical='top'
+      />
+      
+      <Pressable onPress={onSave} style={styles.button}>
+        <Text>Save</Text>
+      </Pressable>
+
+      <Pressable onPress={onDelete} style={styles.deleteButton}>
+        <Text style={styles.deleteText}>Delete</Text>
+      </Pressable>
+
+      <Pressable onPress={() => router.back()}
+        style={({ pressed }) => [styles.backFab, pressed && styles.backFabPressed]}
+        >
+        <Text style={styles.backFabText}>Back</Text>
+      </Pressable>
     </View>
-
-
   );
 }
 
+
 function createStyles(theme: Theme) {
   return StyleSheet.create({
+    deleteButton: {
+      padding: 10,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: theme.colors.primary,
+    },
+    deleteText: {
+      color: theme.colors.primary,
+    },
+    input:{
+      backgroundColor: theme.colors.card,
+      padding: 10,
+      color: theme.colors.text,
+    },
+    contentInput: {
+      minHeight: 200,
+    },
+    button:{
+      backgroundColor: theme.colors.primary,
+      padding: 10,
+      alignItems: "center",
+    },
     backFab: {
       position: "absolute",
       bottom: 24,

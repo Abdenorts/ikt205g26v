@@ -1,10 +1,10 @@
+import { supabase } from '@/lib/supabase';
 import type { Theme } from '@react-navigation/native';
 import { useTheme } from '@react-navigation/native';
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { addNote } from "../../src/NotesStore";
 
 
 export default function NewNote() {
@@ -15,7 +15,25 @@ export default function NewNote() {
     const [title, setTitle] = useState("")
     const [content, setContent] = useState("")
     
-    function onSave() {addNote(title, content);router.back();}
+async function onSave() {
+    const t = title.trim(); 
+    const c = content.trim(); 
+    if(!t || !c) {
+        alert("Title and content cannot be empty");
+        return;
+    }
+    
+    const { error } = await supabase
+        .from('FastNotes')
+        .insert([{ title: t, content: c, updated_at: new Date() }]);
+
+    if (!error) {
+        alert("Note saved successfully");
+        router.back();
+    } else {
+        alert("Failed to save note");
+    }
+}
 
     return(
     <View style={[{ flex: 1, backgroundColor: theme.colors.background }]}>

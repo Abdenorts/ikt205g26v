@@ -3,7 +3,7 @@ import type { Theme } from '@react-navigation/native';
 import { useTheme } from '@react-navigation/native';
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 
@@ -23,16 +23,28 @@ async function onSave() {
         return;
     }
     
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        alert("User not authenticated");
+        return;
+    }
+
     const { error } = await supabase
         .from('FastNotes')
-        .insert([{ title: t, content: c, updated_at: new Date() }]);
+        .insert([{ 
+            title: t,
+            content: c,
+            author: user.id,
+            updated_at: new Date().toISOString(),
+            }]);
 
-    if (!error) {
-        alert("Note saved successfully");
-        router.back();
-    } else {
-        alert("Failed to save note");
-    }
+
+    if (error) {
+        Alert.alert("Error!", " Error Failed to save note.");
+        return;
+    } 
+    Alert.alert("Success!", "Note saved successfully.");
+    router.back();
 }
 
     return(

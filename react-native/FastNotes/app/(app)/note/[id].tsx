@@ -59,15 +59,21 @@ useEffect(() => {
         return;
     }
 
-    const { error } = await supabase
+    const { data ,error } = await supabase
         .from('FastNotes')
         .update({ title: t, content: c, updated_at: new Date() })
-        .eq('id', noteId);
+        .eq('id', noteId)
+        .select('id');
 
       if(error){
-        Alert.alert("Error", "Failed to update note");
+        Alert.alert("Error", "Note can only be updated by the creator.");
         return;
   } 
+      if(!data || data.length === 0) {
+      Alert.alert("Not updated!", "This note can only be updated by the creator.");
+      return;
+    }
+
     Alert.alert("Success", "Note updated");
     router.back();
   }
@@ -81,13 +87,19 @@ useEffect(() => {
         { text: "Delete", 
           style: "destructive",
            onPress: async () => {
-            const { error } = await supabase
+            const { data, error } = await supabase
               .from('FastNotes')
               .delete()
-              .eq('id', noteId);
+              .eq('id', noteId)
+              .select('id');
 
             if(error){
-              Alert.alert("Error", "Failed to delete note");
+              Alert.alert("Not deleted", "This note can only be deleted by the creator.");
+              return;
+            }
+
+            if(!data || data.length === 0) {
+              Alert.alert("Not deleted", "This note can only be deleted by the creator.");
               return;
             }
 

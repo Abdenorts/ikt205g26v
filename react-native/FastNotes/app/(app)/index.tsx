@@ -3,38 +3,50 @@ import { useTheme } from '@react-navigation/native';
 import { Link, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { getNotes, Note } from "../../src/NotesStore";
+import { supabase } from "../../lib/supabase";
 
+type WorkNote = {
+    id: number;
+    title: string;
+    content: string;
+    updated_at: string;
+};
 
 export default function Index() {
   const router = useRouter();
-  const [notes, setNotes] = useState<Note[]>([]);
-  useFocusEffect(
-    useCallback(() => { setNotes(getNotes()); }, [])
-  );
   const theme = useTheme() as Theme;
   const styles = createStyles(theme);
+
+    const [notes, setNotes] = useState<WorkNote[]>([]);
+
+useFocusEffect(
+  useCallback(() => { 
+    (async () => { 
+      const { data, error } = await supabase
+        .from('FastNotes')
+        .select('id, title, content, updated_at')
+        .order('updated_at', { ascending: false });
+
+      if (!error && data) setNotes(data as WorkNote[]);
+    })(); 
+  }, []) 
+);
 
 
   return (
     <View style={styles.container}>
 
-      <Link href="/work_notes" asChild>
-        <Pressable style={{marginBottom: 12}}>
-          <Text style={styles.button}>Work notes</Text>
-        </Pressable>
-      </Link>
+
 
       <FlatList
       data={notes}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(item) => String(item.id)}
       contentContainerStyle={notes.length === 0 ? styles.emptyContainer : undefined}
       ListEmptyComponent={
       <Text style={styles.emptyText}>
         No notes yet. Click + button to create one!
         </Text>
         }
-
         renderItem={({ item }) => (
         <Link href={`/note/${item.id}`} asChild>
           <Pressable style={styles.noteCard}>

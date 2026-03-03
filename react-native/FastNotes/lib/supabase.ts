@@ -48,15 +48,16 @@ const WebStorageAdapter = {
 const nativeStorageAdapter = {
   getItem: (key: string) => SecureStore.getItemAsync(key),
   setItem: (key: string, value: string) => {
-    if (value.length > 2000) {
-            console.warn('Value > 2000 bytes may not be stored successfully.')
+    if (value.length > 2048) {
+      console.warn(`Value for key "${key}" exceeds 2048 characters and may not be stored successfully.`);
     }
     return SecureStore.setItemAsync(key, value);
   },
   removeItem: (key: string) => SecureStore.deleteItemAsync(key),
-}
+};
 
 const storageAdapter = Platform.OS === 'web' ? WebStorageAdapter : nativeStorageAdapter;
+
 
 export const supabase = createClient(supabaseUrl!, supabaseKey!, {
   auth: {

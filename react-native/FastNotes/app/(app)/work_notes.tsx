@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { supabase } from "../../lib/supabase";
 
+// This is created in case I need it for a bigger implementation. 
+
 type WorkNote = {
     id: number;
     title: string;

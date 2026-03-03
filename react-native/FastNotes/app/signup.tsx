@@ -26,7 +26,9 @@ export default function SignupScreen() {
     }
 
     if (!data.session) {
-      Alert.alert("Account created", "Now sign in with your email and password.");
+      Alert.alert(  
+        "Account created",
+        "Check your email and click the confirmation link, then log in.");
       router.replace("/login");
       return;
     }

@@ -8,41 +8,19 @@
     "scheme": "fastnotes",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.fastnotes",
-      "infoPlist": {
-        "NSCameraUsageDescription": "Images are used for fact attachments"
-      }
+      "supportsTablet": true
     },
-
     "android": {
       "package": "com.fastnotes",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "permissions": ["CAMERA", "NOTIFICATIONS"]
+      "predictiveBackGestureEnabled": false
     },
-
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-
     "plugins": [
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Images are used for fact attachments"
-        }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#ffffff"
-        }
-      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -56,7 +34,6 @@
       "expo-sqlite",
       "expo-secure-store"
     ],
-
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

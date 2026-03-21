@@ -115,7 +115,11 @@ useEffect(() => {
   }
       
 
-  if (loading) return null;
+  if (loading) return (
+    <View style={styles.container} testID="loading-indicator">
+      <Text style={styles.notFound}>Loading...</Text>
+    </View>
+  );
 
   if (notFound) {
     return (

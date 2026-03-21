@@ -1,10 +1,11 @@
 import { supabase } from "@/lib/supabase";
 import type { Theme } from "@react-navigation/native";
 import { useTheme } from "@react-navigation/native";
+import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import ImagePickerSection from "../../components/ImagePickerSection";
 import { requestCameraPermission, requestMediaLibraryPermission } from "../../lib/permissions";
@@ -17,6 +18,7 @@ export default function NewNote() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   async function handleTakePhoto() {
     const hasPermission = await requestCameraPermission();
@@ -60,6 +62,34 @@ export default function NewNote() {
     setImageUri(null);
   }
 
+async function validateImageBeforeUpload(): Promise<void> {
+  if (!imageUri) {
+    return;
+  }
+
+  const allowedExtensions = ["jpg", "jpeg", "png", "webp"];
+  const fileExtension = imageUri.split(".").pop()?.toLowerCase();
+
+  if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
+    throw new Error("Invalid image format. Only JPG, PNG, and WEBP are allowed.");
+  }
+
+  const fileInfo = await FileSystem.getInfoAsync(imageUri);
+
+  if (!fileInfo.exists) {
+    throw new Error("Selected image file does not exist.");
+  }
+
+  if (!("size" in fileInfo) || typeof fileInfo.size !== "number") {
+    throw new Error("Unable to determine image file size.");
+  }
+
+  const maxSizeInBytes = 15 * 1024 * 1024;
+
+  if (fileInfo.size > maxSizeInBytes) {
+    throw new Error("Image size exceeds the 15MB limit.");
+  }
+}
   async function uploadImageToSupabase(): Promise<string | null> {
     if (!imageUri) {
       return null;
@@ -94,11 +124,14 @@ export default function NewNote() {
       return;
     }
 
+    setIsSaving(true);
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) {
+      setIsSaving(false);
       Alert.alert("Error", "User not authenticated");
       return;
     }
@@ -106,14 +139,17 @@ export default function NewNote() {
     let imageUrl: string | null = null;
 
     try {
-      imageUrl = await uploadImageToSupabase();
+    await validateImageBeforeUpload();
+    imageUrl = await uploadImageToSupabase();
     } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert("Image Upload Error", error.message);
-      } else {
-        Alert.alert("Image Upload Error", "Failed to upload image.");
-      }
-      return;
+    setIsSaving(false);
+
+    if (error instanceof Error) {
+        Alert.alert("Image Error", error.message);
+    } else {
+        Alert.alert("Image Error", "Failed to validate or upload image.");
+    }
+    return;
     }
 
     const { error } = await supabase.from("FastNotes").insert([
@@ -127,9 +163,12 @@ export default function NewNote() {
     ]);
 
     if (error) {
+      setIsSaving(false);
       Alert.alert("Error", error.message);
       return;
     }
+
+    setIsSaving(false);
 
     Alert.alert("Success", "Note saved successfully.");
     router.back();
@@ -168,8 +207,11 @@ export default function NewNote() {
           onRemoveImage={handleRemoveImage}
         />
 
-        <Pressable onPress={onSave} style={styles.button}>
-          <Text>Save</Text>
+        <Pressable onPress={onSave} style={styles.button} disabled={isSaving}>
+            <View style={styles.buttonContent}>
+                {isSaving ? <ActivityIndicator size="small" color={theme.colors.background}/>: null}
+          <Text style={styles.buttonText}>{isSaving ? "Saving..." : "Save"}</Text>
+            </View>
         </Pressable>
       </KeyboardAwareScrollView>
 
@@ -195,6 +237,15 @@ function createStyles(theme: Theme) {
       backgroundColor: theme.colors.primary,
       alignItems: "center",
       justifyContent: "center",
+    },
+    buttonContent: {
+      flexDirection: "row",
+      alignItems: "center",
+        gap: 8,
+    },
+    buttonText: {
+      color: theme.colors.background,
+      fontWeight: "600",
     },
     backFabPressed: {
       opacity: 0.8,

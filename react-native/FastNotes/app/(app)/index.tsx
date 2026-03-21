@@ -2,7 +2,7 @@ import type { Theme } from '@react-navigation/native';
 import { useTheme } from '@react-navigation/native';
 import { Link, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { supabase } from "../../lib/supabase";
 
 type WorkNote = {
@@ -10,6 +10,7 @@ type WorkNote = {
     title: string;
     content: string;
     updated_at: string;
+    image_url?: string | null;
 };
 
 export default function Index() {
@@ -24,7 +25,7 @@ useFocusEffect(
     (async () => { 
       const { data, error } = await supabase
         .from('FastNotes')
-        .select('id, title, content, updated_at')
+        .select('id, title, content, updated_at, image_url')
         .order('updated_at', { ascending: false });
 
       if (!error && data) setNotes(data as WorkNote[]);
@@ -50,6 +51,12 @@ useFocusEffect(
         renderItem={({ item }) => (
         <Link href={`/note/${item.id}`} asChild>
           <Pressable style={styles.noteCard}>
+            {item.image_url ? (
+              <Image
+                source={{ uri: item.image_url }}
+                style={styles.noteImage}
+              />
+            ) : null}
             <Text style={styles.noteTitle}>{item.title}</Text>
           </Pressable>
         </Link>
@@ -71,6 +78,13 @@ function createStyles(theme: Theme) {
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 26,
+    },
+    noteImage: {
+      width: "100%",
+      height: 180,
+      borderRadius: 10,
+      resizeMode: "cover",
+      marginBottom: 10,
     },
     emptyText: {
       fontSize: 16,

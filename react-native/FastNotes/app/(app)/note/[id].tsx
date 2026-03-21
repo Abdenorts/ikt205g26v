@@ -3,12 +3,13 @@ import type { Theme } from '@react-navigation/native';
 import { useTheme } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 type WorkNote = {
     id: number;
     title: string;
     content: string;
+    image_url?: string;
 };
 
 export default function NoteDetail() {
@@ -22,6 +23,7 @@ export default function NoteDetail() {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [imageUri, setImageUri] = useState<string | null>(null);
 
 useEffect(() => {
     (async () => {
@@ -33,7 +35,7 @@ useEffect(() => {
 
       const { data, error } = await supabase
         .from('FastNotes')
-        .select('id, title, content')
+        .select('id, title, content, image_url')
         .eq('id', noteId)
         .single();
 
@@ -47,6 +49,7 @@ useEffect(() => {
       setTitle(n.title);
       setContent(n.content);
       setLoading(false);
+      setImageUri(n.image_url || null);
     })();
   }, [id, noteId]);
 
@@ -143,7 +146,10 @@ useEffect(() => {
        multiline
        textAlignVertical='top'
       />
-      
+      {imageUri ? (
+        <Image source={{ uri: imageUri }} style={styles.noteImage} />
+      ) : null}
+
       <Pressable onPress={onSave} style={styles.button}>
         <Text>Save</Text>
       </Pressable>
@@ -172,6 +178,12 @@ function createStyles(theme: Theme) {
     },
     deleteText: {
       color: theme.colors.primary,
+    },
+    noteImage: {
+      width: "100%",
+      height: 220,
+      borderRadius: 12,
+      resizeMode: "cover",
     },
     input:{
       backgroundColor: theme.colors.card,
